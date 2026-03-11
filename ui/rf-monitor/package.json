@@ -1,0 +1,23 @@
+{
+  "name": "rf-monitor",
+  "version": "1.0.0",
+  "description": "LAN UI for Arduino RF detector",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "rf",
+    "arduino",
+    "serial",
+    "websocket"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "serialport": "^13.0.0",
+    "ws": "^8.19.0"
+  }
+}

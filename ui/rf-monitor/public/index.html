@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vnivel LAN Pro</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#121923;
+      --panel2:#182231;
+      --text:#eaf2ff;
+      --muted:#8ea0b8;
+      --ok:#7CFC9A;
+      --warn:#ffd166;
+      --bad:#ff6b6b;
+      --line:#2a3950;
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,sans-serif;
+      overflow:hidden;
+    }
+
+    .app{
+      width:100%;
+      height:100%;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:14px;
+      padding:16px;
+    }
+
+    .topbar, .bottombar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .left, .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:8px 12px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .pill strong{
+      color:var(--text);
+      font-weight:700;
+    }
+
+    .led{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      display:inline-block;
+      margin-right:8px;
+      background:var(--bad);
+      box-shadow:0 0 10px rgba(255,107,107,.4);
+    }
+
+    .led.ok{
+      background:var(--ok);
+      box-shadow:0 0 10px rgba(124,252,154,.5);
+    }
+
+    button{
+      background:var(--panel2);
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 14px;
+      font-size:14px;
+      cursor:pointer;
+    }
+
+    button:hover{
+      filter:brightness(1.08);
+    }
+
+    .main{
+      min-height:0;
+      display:grid;
+      grid-template-columns:1fr minmax(240px, 320px);
+      gap:16px;
+    }
+
+    .hero, .side{
+      min-height:0;
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      border:1px solid var(--line);
+      border-radius:22px;
+      overflow:hidden;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-rows:1fr auto;
+      padding:18px;
+    }
+
+    .valueWrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:0;
+    }
+
+    .value{
+      font-size:min(24vw, 28vh);
+      font-weight:800;
+      line-height:1;
+      letter-spacing:-0.05em;
+      font-variant-numeric:tabular-nums;
+      text-align:center;
+      text-shadow:0 0 25px rgba(255,255,255,.05);
+    }
+
+    .barWrap{
+      padding-top:8px;
+    }
+
+    .barLabel{
+      display:flex;
+      justify-content:space-between;
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:8px;
+    }
+
+    .bar{
+      width:100%;
+      height:22px;
+      background:#0e141d;
+      border:1px solid var(--line);
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .barFill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background:linear-gradient(90deg, #4fc3f7, #7CFC9A, #ffd166);
+      transition:width 180ms ease;
+    }
+
+    .side{
+      padding:16px;
+      display:grid;
+      grid-template-rows:repeat(6, auto) 1fr;
+      gap:12px;
+    }
+
+    .card{
+      background:#0f151e;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .metric{
+      font-size:32px;
+      font-weight:800;
+      line-height:1;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:6px;
+      word-break:break-all;
+    }
+
+    .foot{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    @media (max-width: 920px){
+      .main{
+        grid-template-columns:1fr;
+      }
+      .side{
+        grid-template-columns:repeat(2, 1fr);
+        grid-template-rows:auto;
+      }
+    }
+
+    @media (max-width: 640px){
+      .side{
+        grid-template-columns:1fr;
+      }
+      .value{
+        font-size:min(28vw, 22vh);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="left">
+        <div class="pill"><span id="led" class="led"></span><strong id="connText">Desconectado</strong></div>
+        <div class="pill">Puerto: <strong id="portText">--</strong></div>
+        <div class="pill">Clientes: <strong id="clientsText">0</strong></div>
+      </div>
+      <div class="right">
+        <button id="resetPeak">Reset pico</button>
+        <button id="fullscreen">Pantalla completa</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="hero">
+        <div class="valueWrap">
+          <div class="value" id="value">--</div>
+        </div>
+        <div class="barWrap">
+          <div class="barLabel">
+            <span>Nivel</span>
+            <span id="barPercent">0%</span>
+          </div>
+          <div class="bar">
+            <div class="barFill" id="barFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card">
+          <div class="label">Promedio</div>
+          <div class="metric" id="avgValue">--</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Pico</div>
+          <div class="metric" id="peakValue">--</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Último crudo</div>
+          <div class="metric" id="rawValue">--</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Última muestra</div>
+          <div class="metric" id="ageValue">--</div>
+          <div class="sub" id="ageSub">sin datos</div>
+        </div>
+
+        <div class="card">
+          <div class="label">Escala</div>
+          <div class="metric" id="scaleValue">1000</div>
+          <div class="sub">ajustable en el frontend</div>
+        </div>
+
+        <div class="card">
+          <div class="label">WebSocket</div>
+          <div class="metric" id="wsState">--</div>
+          <div class="sub" id="wsUrl">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottombar">
+      <div class="foot" id="footerStatus">Esperando conexión...</div>
+    </div>
+  </div>
+
+  <script>
+    const valueEl = document.getElementById("value");
+    const avgValueEl = document.getElementById("avgValue");
+    const peakValueEl = document.getElementById("peakValue");
+    const rawValueEl = document.getElementById("rawValue");
+    const ageValueEl = document.getElementById("ageValue");
+    const ageSubEl = document.getElementById("ageSub");
+    const scaleValueEl = document.getElementById("scaleValue");
+    const wsStateEl = document.getElementById("wsState");
+    const wsUrlEl = document.getElementById("wsUrl");
+    const connTextEl = document.getElementById("connText");
+    const ledEl = document.getElementById("led");
+    const portTextEl = document.getElementById("portText");
+    const clientsTextEl = document.getElementById("clientsText");
+    const footerStatusEl = document.getElementById("footerStatus");
+    const barFillEl = document.getElementById("barFill");
+    const barPercentEl = document.getElementById("barPercent");
+    const resetPeakBtn = document.getElementById("resetPeak");
+    const fullscreenBtn = document.getElementById("fullscreen");
+
+    const SCALE_MAX = 500;
+    const SAMPLE_WINDOW = 12;
+    const SMOOTH_FACTOR = 0.25;
+    const UPDATE_THRESHOLD = 0.5;
+
+    let ws = null;
+    let reconnectTimer = null;
+
+    let rawValue = null;
+    let avgInput = null;
+    let visualValue = null;
+    let shownValue = null;
+    let peakValue = null;
+    let lastSampleTs = null;
+
+    const samples = [];
+
+    function avg(arr) {
+      return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+    }
+
+    function pushSample(n) {
+      samples.push(n);
+      if (samples.length > SAMPLE_WINDOW) samples.shift();
+      return avg(samples);
+    }
+
+    function clamp(v, a, b) {
+      return Math.max(a, Math.min(b, v));
+    }
+
+    function setConnectionState(ok, txt) {
+      connTextEl.textContent = txt;
+      ledEl.classList.toggle("ok", !!ok);
+    }
+
+    function fmt(v) {
+      return v == null ? "--" : String(Math.round(v));
+    }
+
+    function updateBar(v) {
+      const pct = clamp((v / SCALE_MAX) * 100, 0, 100);
+      barFillEl.style.width = pct + "%";
+      barPercentEl.textContent = Math.round(pct) + "%";
+    }
+
+    function connectWs() {
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      const url = `${proto}://${location.host}/ws`;
+
+      wsUrlEl.textContent = url;
+      wsStateEl.textContent = "Conectando";
+      footerStatusEl.textContent = "Conectando al servidor...";
+
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        wsStateEl.textContent = "Online";
+        footerStatusEl.textContent = "WebSocket conectado";
+      };
+
+      ws.onmessage = (ev) => {
+        let msg;
+        try {
+          msg = JSON.parse(ev.data);
+        } catch {
+          return;
+        }
+
+        if (msg.type === "status") {
+          setConnectionState(msg.serialConnected, msg.serialConnected ? "Serie OK" : "Serie caída");
+          portTextEl.textContent = msg.activePortPath || "--";
+          clientsTextEl.textContent = String(msg.clients ?? 0);
+          footerStatusEl.textContent = msg.serialConnected
+            ? `Conectado a ${msg.activePortPath || "--"}`
+            : "Servidor activo, esperando serie";
+        }
+
+        if (msg.type === "value") {
+          rawValue = msg.value;
+          lastSampleTs = msg.ts;
+          avgInput = pushSample(rawValue);
+
+          if (peakValue == null || rawValue > peakValue) {
+            peakValue = rawValue;
+          }
+        }
+      };
+
+      ws.onclose = () => {
+        wsStateEl.textContent = "Offline";
+        footerStatusEl.textContent = "WebSocket desconectado. Reintentando...";
+        if (!reconnectTimer) {
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            connectWs();
+          }, 2000);
+        }
+      };
+
+      ws.onerror = () => {
+        wsStateEl.textContent = "Error";
+      };
+    }
+
+    function animate() {
+      if (avgInput != null) {
+        if (visualValue == null) {
+          visualValue = avgInput;
+        } else {
+          visualValue += (avgInput - visualValue) * SMOOTH_FACTOR;
+        }
+
+        const rounded = Math.round(visualValue);
+
+        if (shownValue == null || Math.abs(rounded - shownValue) >= UPDATE_THRESHOLD) {
+          shownValue = rounded;
+          valueEl.textContent = String(shownValue);
+          updateBar(shownValue);
+        }
+      }
+
+      avgValueEl.textContent = fmt(avgInput);
+      rawValueEl.textContent = fmt(rawValue);
+      peakValueEl.textContent = fmt(peakValue);
+      scaleValueEl.textContent = String(SCALE_MAX);
+
+      if (lastSampleTs) {
+        const ageMs = Date.now() - lastSampleTs;
+        ageValueEl.textContent = (ageMs / 1000).toFixed(1) + "s";
+        ageSubEl.textContent = new Date(lastSampleTs).toLocaleTimeString();
+      } else {
+        ageValueEl.textContent = "--";
+        ageSubEl.textContent = "sin datos";
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    resetPeakBtn.addEventListener("click", () => {
+      peakValue = rawValue;
+    });
+
+    fullscreenBtn.addEventListener("click", async () => {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    });
+
+    connectWs();
+    animate();
+  </script>
+</body>
+</html>
